@@ -1,0 +1,173 @@
+{
+  "97.106.123.239": {
+    "ip": "97.106.123.239",
+    "rule_name": "IoT_IDS_Block_97.106.123.239",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:19:21",
+    "firewall_applied": false,
+    "status": "QUARANTINED"
+  },
+  "201.31.230.32": {
+    "ip": "201.31.230.32",
+    "rule_name": "IoT_IDS_Block_201.31.230.32",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:16",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.173": {
+    "ip": "192.168.1.173",
+    "rule_name": "IoT_IDS_Block_192.168.1.173",
+    "reason": "DoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:17",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "139.133.41.77": {
+    "ip": "139.133.41.77",
+    "rule_name": "IoT_IDS_Block_139.133.41.77",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:18",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.221": {
+    "ip": "192.168.1.221",
+    "rule_name": "IoT_IDS_Block_192.168.1.221",
+    "reason": "DoS Attack",
+    "confidence": 99.6,
+    "timestamp": "2026-08-27 11:25:22",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "43.123.152.37": {
+    "ip": "43.123.152.37",
+    "rule_name": "IoT_IDS_Block_43.123.152.37",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:24",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.209": {
+    "ip": "192.168.1.209",
+    "rule_name": "IoT_IDS_Block_192.168.1.209",
+    "reason": "DoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:27",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "161.247.135.91": {
+    "ip": "161.247.135.91",
+    "rule_name": "IoT_IDS_Block_161.247.135.91",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:28",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.211": {
+    "ip": "192.168.1.211",
+    "rule_name": "IoT_IDS_Block_192.168.1.211",
+    "reason": "DoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:28",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "45.175.184.128": {
+    "ip": "45.175.184.128",
+    "rule_name": "IoT_IDS_Block_45.175.184.128",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:30",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.219": {
+    "ip": "192.168.1.219",
+    "rule_name": "IoT_IDS_Block_192.168.1.219",
+    "reason": "DoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:31",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.206": {
+    "ip": "192.168.1.206",
+    "rule_name": "IoT_IDS_Block_192.168.1.206",
+    "reason": "Recon Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:31",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.205": {
+    "ip": "192.168.1.205",
+    "rule_name": "IoT_IDS_Block_192.168.1.205",
+    "reason": "Recon Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:31",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "104.6.107.143": {
+    "ip": "104.6.107.143",
+    "rule_name": "IoT_IDS_Block_104.6.107.143",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:34",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.202": {
+    "ip": "192.168.1.202",
+    "rule_name": "IoT_IDS_Block_192.168.1.202",
+    "reason": "DoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:34",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "65.224.98.227": {
+    "ip": "65.224.98.227",
+    "rule_name": "IoT_IDS_Block_65.224.98.227",
+    "reason": "DDoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:34",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "65.181.126.192": {
+    "ip": "65.181.126.192",
+    "rule_name": "IoT_IDS_Block_65.181.126.192",
+    "reason": "DDoS Attack",
+    "confidence": 99.9,
+    "timestamp": "2026-08-27 11:25:39",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.215": {
+    "ip": "192.168.1.215",
+    "rule_name": "IoT_IDS_Block_192.168.1.215",
+    "reason": "Recon Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:39",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  },
+  "192.168.1.208": {
+    "ip": "192.168.1.208",
+    "rule_name": "IoT_IDS_Block_192.168.1.208",
+    "reason": "DoS Attack",
+    "confidence": 100.0,
+    "timestamp": "2026-08-27 11:25:43",
+    "firewall_applied": true,
+    "status": "QUARANTINED"
+  }
+}

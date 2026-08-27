@@ -1,0 +1,390 @@
+/* =========================================================================
+   IoT Intrusion Detection — Mobile SOC Remote Controller Styles
+   ========================================================================= */
+
+:root {
+  --bg-dark: #090a0f;
+  --bg-card: #11131a;
+  --bg-card-hover: #181b26;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.16);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --accent-cyan: #0ea5e9;
+  --benign: #10b981;
+  --ddos: #ef4444;
+  --dos: #f97316;
+  --recon: #3b82f6;
+  --ips: #10b981;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding-bottom: 30px;
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+.text-danger { color: var(--ddos); }
+.text-warning { color: #f59e0b; }
+.text-ips { color: #10b981; }
+.text-cyan { color: var(--accent-cyan); }
+.mb-2 { margin-bottom: 8px; }
+.mb-3 { margin-bottom: 12px; }
+
+/* ---------------- Mobile Header ---------------- */
+.mobile-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(17, 19, 26, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+}
+
+.mobile-nav-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-logo-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: white;
+}
+
+.mobile-app-title {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.mobile-app-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mobile-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.status-dot.connected { background: var(--benign); box-shadow: 0 0 6px var(--benign); }
+.status-dot.disconnected { background: var(--ddos); }
+
+/* ---------------- Content & Cards ---------------- */
+.mobile-content {
+  padding: 14px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.mobile-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mobile-row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ---------------- Threat Hero Card ---------------- */
+.threat-hero-card {
+  background: linear-gradient(180deg, #181b26 0%, #11131a 100%);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.threat-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.threat-badge {
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+}
+.badge-secure { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-elevated { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-critical { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+.threat-hero-middle {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.threat-hero-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.threat-hero-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.threat-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.threat-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444);
+  transition: width 0.3s ease;
+}
+
+/* ---------------- Quick Stats Grid ---------------- */
+.mobile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.m-stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.m-stat-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.m-stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ---------------- Attack Launcher Buttons ---------------- */
+.m-attack-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.m-btn-attack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+}
+
+.m-btn-attack:active {
+  transform: scale(0.96);
+}
+
+.m-btn-attack.dos { border-color: rgba(249, 115, 22, 0.4); background: rgba(249, 115, 22, 0.08); color: #fb923c; }
+.m-btn-attack.ddos { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); color: #f87171; }
+.m-btn-attack.recon { border-color: rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.08); color: #60a5fa; }
+.m-btn-attack.burst { border-color: rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.08); color: #c084fc; grid-column: span 2; }
+
+.m-feedback-pill {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---------------- Quarantine & Flow Lists ---------------- */
+.m-counter-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ddos);
+  background: rgba(239, 68, 68, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.m-quarantine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.m-quarantine-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(239, 68, 68, 0.04);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.m-unblock-btn {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.m-empty-text {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 10px 0;
+}
+
+.m-flow-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.m-flow-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--benign);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.m-flow-card.DDoS { border-left-color: var(--ddos); background: rgba(239, 68, 68, 0.05); }
+.m-flow-card.DoS { border-left-color: var(--dos); background: rgba(249, 115, 22, 0.05); }
+.m-flow-card.Recon { border-left-color: var(--recon); background: rgba(59, 130, 246, 0.05); }
+
+/* Switch Toggle */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #2b3145;
+  transition: .3s;
+  border-radius: 22px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--benign); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* Footer */
+.mobile-footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 10px;
+}

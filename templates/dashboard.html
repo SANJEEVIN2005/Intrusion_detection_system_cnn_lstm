@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT IDS — Security Operations Center</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Vis.js Network for Hardware-Accelerated 2D Topology Graphing -->
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <!-- QRCode.js for On-Screen Mobile Remote Pairing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- jsPDF & AutoTable for PDF Incident Reports -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <div class="logo-badge">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <div>
+        <h1 class="nav-title">IoT Intrusion Detection & Prevention System</h1>
+        <div class="nav-subtitle">Deep Learning Guard (CNN + LSTM) & Active Firewall Defense</div>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <div class="status-pill">
+        <span class="status-dot disconnected" id="status-dot"></span>
+        <span id="status-text">Connecting...</span>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Active IPS Auto-Defense Toggle -->
+        <button class="btn btn-ips active" id="btn-toggle-ips" title="Active IPS Auto-Defense: Automatically blocks attackers with >=90% confidence">
+          <i class="fa-solid fa-shield-virus"></i> <span id="ips-toggle-text">IPS: Active (≥90%)</span>
+        </button>
+        <!-- Blocked Attackers Quarantine Pool -->
+        <button class="btn btn-warning-subtle" id="btn-open-quarantine" title="View quarantined attacker IPs">
+          <i class="fa-solid fa-ban"></i> <span id="quarantine-btn-text">Quarantine (0)</span>
+        </button>
+        <!-- Mobile Remote QR Connect -->
+        <button class="btn btn-secondary" id="btn-open-qr" title="Scan QR Code to control IDS from smartphone">
+          <i class="fa-solid fa-mobile-screen-button"></i> <span>Mobile Remote</span>
+        </button>
+        <!-- Attack Simulator -->
+        <button class="btn btn-danger" id="btn-open-sim" title="Launch threat simulations for live evaluation">
+          <i class="fa-solid fa-radiation"></i> <span>Simulator</span>
+        </button>
+        <!-- Mobile Alerts Setup -->
+        <button class="btn btn-secondary" id="btn-open-alerts" title="Configure instant Telegram & Discord push alerts">
+          <i class="fa-solid fa-bell"></i> <span>Alerts</span>
+        </button>
+        <button class="btn btn-secondary" id="btn-pause-stream" title="Pause / Resume live scrolling">
+          <i class="fa-solid fa-pause" id="pause-icon"></i> <span id="pause-text">Pause</span>
+        </button>
+        <button class="btn btn-secondary" id="btn-audio-toggle" title="Toggle audio alert on threat detection">
+          <i class="fa-solid fa-volume-high" id="audio-icon"></i> <span id="audio-text">Audio</span>
+        </button>
+        <button class="btn btn-primary" id="btn-export-pdf" title="Generate comprehensive PDF Incident Report">
+          <i class="fa-solid fa-file-pdf"></i> PDF
+        </button>
+        <button class="btn btn-secondary" id="btn-export-csv" title="Download flow logs as CSV">
+          <i class="fa-solid fa-file-csv"></i> CSV
+        </button>
+        <button class="btn btn-danger-subtle" id="btn-clear-table" title="Clear displayed flow table">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="dashboard-container">
+
+    <!-- KPI Summary Grid & Threat Level Meter -->
+    <section class="kpi-grid">
+      <!-- Threat Gauge Widget -->
+      <div class="card threat-gauge-card">
+        <div class="gauge-header">
+          <span class="card-label">Security Threat Index</span>
+          <span class="threat-status-badge badge-secure" id="threat-badge">SECURE</span>
+        </div>
+        <div class="gauge-content">
+          <div class="threat-score-wrap">
+            <div class="threat-score" id="threat-score">0%</div>
+            <div class="threat-desc" id="threat-desc">No malicious traffic detected</div>
+          </div>
+          <div class="threat-bar-container">
+            <div class="threat-bar-fill" id="threat-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Benign Card -->
+      <div class="card kpi-card benign">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="kpi-data">
+          <div class="card-label">Benign Traffic</div>
+          <div class="card-count" id="count-Benign">0</div>
+          <div class="card-sub" id="pct-Benign">0.0% of total</div>
+        </div>
+      </div>
+
+      <!-- DDoS Card -->
+      <div class="card kpi-card ddos">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-burst"></i></div>
+        <div class="kpi-data">
+          <div class="card-label">DDoS Attacks</div>
+          <div class="card-count" id="count-DDoS">0</div>
+          <div class="card-sub" id="pct-DDoS">0.0% of total</div>
+        </div>
+      </div>
+
+      <!-- DoS Card -->
+      <div class="card kpi-card dos">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="kpi-data">
+          <div class="card-label">DoS Floods</div>
+          <div class="card-count" id="count-DoS">0</div>
+          <div class="card-sub" id="pct-DoS">0.0% of total</div>
+        </div>
+      </div>
+
+      <!-- Recon Card -->
+      <div class="card kpi-card recon">
+        <div class="kpi-icon-wrap"><i class="fa-solid fa-radar"></i></div>
+        <div class="kpi-data">
+          <div class="card-label">Recon / Scans</div>
+          <div class="card-count" id="count-Recon">0</div>
+          <div class="card-sub" id="pct-Recon">0.0% of total</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View Mode Switcher Toolbar -->
+    <div class="view-switch-toolbar">
+      <button class="view-tab-btn active" id="view-tab-charts" onclick="switchSOCView('charts')">
+        <i class="fa-solid fa-chart-line"></i> SOC Traffic & Analytics
+      </button>
+      <button class="view-tab-btn" id="view-tab-topology" onclick="switchSOCView('topology')">
+        <i class="fa-solid fa-circle-nodes"></i> Live Network Topology Map
+        <span class="live-pulse-dot"></span>
+      </button>
+    </div>
+
+    <!-- Analytics Charts Section -->
+    <section class="charts-section" id="charts-view-container">
+      <!-- Live Traffic Timeline Chart -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fa-solid fa-chart-line"></i> Live Traffic & Intrusion Timeline</div>
+          <div class="chart-legend-custom">
+            <span class="legend-dot dot-traffic"></span> Total Flows
+            <span class="legend-dot dot-attacks"></span> Flagged Attacks
+          </div>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="trafficTimelineChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Threat Distribution Donut Chart -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fa-solid fa-chart-pie"></i> Classification Distribution</div>
+          <div class="chart-stat" id="total-flows-stat">Total: 0 Flows</div>
+        </div>
+        <div class="chart-canvas-wrap donut-wrap">
+          <canvas id="threatDonutChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Interactive Network Topology Graph Section (Vis.js) -->
+    <section class="topology-section" id="topology-view-container" style="display: none;">
+      <div class="card topology-card">
+        <div class="topology-header">
+          <div class="topology-title-wrap">
+            <div class="chart-title"><i class="fa-solid fa-circle-nodes"></i> Real-Time IoT Network Topology Graph</div>
+            <div class="topology-stats-pill">
+              <span id="topo-nodes-count">Nodes: 1</span> • 
+              <span id="topo-links-count">Active Links: 0</span> • 
+              <span id="topo-attack-count" class="threat-text">Threats: 0</span>
+            </div>
+          </div>
+
+          <div class="topology-actions">
+            <button class="btn btn-xs btn-secondary" onclick="fitTopologyMap()" title="Fit and center map">
+              <i class="fa-solid fa-compress"></i> Center
+            </button>
+            <button class="btn btn-xs btn-secondary" id="btn-toggle-physics" onclick="toggleTopologyPhysics()" title="Toggle physics simulation">
+              <i class="fa-solid fa-atom"></i> Physics: On
+            </button>
+            <button class="btn btn-xs btn-danger-subtle" onclick="resetTopologyMap()" title="Reset to gateway">
+              <i class="fa-solid fa-rotate-left"></i> Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="topology-legend-bar">
+          <div class="legend-item"><span class="legend-circle gateway"></span> <strong>Gateway Node:</strong> IoT IDS Server (Laptop)</div>
+          <div class="legend-item"><span class="legend-circle local"></span> <strong>Local Devices:</strong> Smartphone / Sensors</div>
+          <div class="legend-item"><span class="legend-circle remote"></span> <strong>Remote Hosts:</strong> Web / Cloud Servers</div>
+          <div class="legend-item"><span class="legend-circle attacker"></span> <strong>Quarantined Attacker:</strong> Blocked by IPS (≥90%)</div>
+        </div>
+
+        <div class="topology-canvas-container" id="topology-network-container">
+          <div class="topology-overlay-hint">💡 Tip: Drag nodes, scroll to zoom, click any device to inspect</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Flow Table & Filter Controls Section -->
+    <section class="table-section">
+      <div class="table-header-controls">
+        <div class="filter-tabs" id="filter-tabs">
+          <button class="filter-tab active" data-filter="all">All Flows (<span id="tab-count-all">0</span>)</button>
+          <button class="filter-tab" data-filter="attacks">🚨 Attacks (<span id="tab-count-attacks">0</span>)</button>
+          <button class="filter-tab" data-filter="Benign">Benign</button>
+          <button class="filter-tab" data-filter="DDoS">DDoS</button>
+          <button class="filter-tab" data-filter="DoS">DoS</button>
+          <button class="filter-tab" data-filter="Recon">Recon</button>
+        </div>
+
+        <div class="table-search-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="flow-search-input" placeholder="Search IP, Port, Protocol..." />
+          <span class="flow-counter" id="flow-display-counter">0 flows</span>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="flow-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Source (IP:Port)</th>
+              <th>Destination (IP:Port)</th>
+              <th>Protocol</th>
+              <th>Predicted Class</th>
+              <th>Confidence</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="flow-table-body">
+            <tr class="empty-row"><td colspan="7">Waiting for network flows... Browse the web or YouTube to stream live data.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Flow Deep Inspection Modal -->
+  <div class="modal-overlay" id="flow-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge" id="modal-class-badge">Benign</div>
+          <h2 class="modal-title">Network Flow Deep Inspection</h2>
+        </div>
+        <button class="modal-close-btn" id="modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" id="modal-body">
+        <!-- 5-Tuple Network Header -->
+        <div class="modal-section">
+          <div class="modal-section-title"><i class="fa-solid fa-network-wired"></i> Connection 5-Tuple</div>
+          <div class="modal-grid-3">
+            <div class="modal-metric">
+              <span class="metric-label">Source</span>
+              <span class="metric-val mono" id="modal-src">192.168.1.1:443</span>
+            </div>
+            <div class="modal-metric">
+              <span class="metric-label">Destination</span>
+              <span class="metric-val mono" id="modal-dst">104.244.42.1:54321</span>
+            </div>
+            <div class="modal-metric">
+              <span class="metric-label">Protocol & Time</span>
+              <span class="metric-val mono" id="modal-proto">TCP | 21:50:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Classification Confidence & Probability Distribution -->
+        <div class="modal-section">
+          <div class="modal-section-title"><i class="fa-solid fa-brain"></i> AI Classification Breakdown (CNN + LSTM)</div>
+          <div class="prob-bars-grid" id="modal-prob-bars">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Explainable AI (XAI) Feature Attribution & Insights -->
+        <div class="modal-section xai-section">
+          <div class="modal-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Explainable AI (XAI) Attribution — Why AI Flagged This Flow</div>
+          
+          <!-- Key Natural Language Insights -->
+          <div class="xai-insights-grid" id="modal-xai-insights">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Feature Attribution Bar Chart / Score Grid -->
+          <div class="xai-features-container">
+            <div class="xai-table-title">Top Contributing Network Attributes:</div>
+            <div class="xai-bars-list" id="modal-xai-bars">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistical Features Breakdown (CICIDS Attributes) -->
+        <div class="modal-section">
+          <div class="modal-section-title"><i class="fa-solid fa-sliders"></i> Flow Statistical Attributes</div>
+          <div class="modal-grid-4" id="modal-features-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Push Alerts Configuration Modal -->
+  <div class="modal-overlay" id="alerts-modal">
+    <div class="modal-card alerts-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="alerts-badge"><i class="fa-solid fa-bell"></i> PUSH NOTIFIER</div>
+          <h2 class="modal-title">Mobile Push Alerts Setup</h2>
+        </div>
+        <button class="modal-close-btn" id="alerts-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="sim-intro">
+          Receive real-time intrusion alert cards directly on your mobile phone via <strong>Telegram</strong> or <strong>Discord</strong> whenever attacks are detected.
+        </p>
+
+        <!-- Master Enable Toggle -->
+        <div class="config-row master-toggle">
+          <div>
+            <div class="config-label">Master Alert Dispatcher</div>
+            <div class="config-desc">Enable or disable background phone push notifications</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="cfg-master-enabled" checked />
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <!-- Telegram Configuration Box -->
+        <div class="integration-box">
+          <div class="integration-header">
+            <div class="integration-icon telegram"><i class="fa-brands fa-telegram"></i></div>
+            <div class="integration-title-wrap">
+              <div class="integration-title">Telegram Bot Integration</div>
+              <div class="integration-desc">Instant alerts sent to your personal or group Telegram chat</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="cfg-tg-enabled" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="integration-fields">
+            <div class="form-group">
+              <label class="form-label">Telegram Bot Token</label>
+              <input type="password" id="cfg-tg-token" class="form-input" placeholder="e.g. 7123456789:AAHk..." />
+              <span class="form-help">Created in Telegram via @BotFather</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Telegram Chat ID</label>
+              <input type="text" id="cfg-tg-chat-id" class="form-input" placeholder="e.g. 123456789 or @channelname" />
+              <span class="form-help">Your Telegram user ID (get from @userinfobot)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Discord Configuration Box -->
+        <div class="integration-box">
+          <div class="integration-header">
+            <div class="integration-icon discord"><i class="fa-brands fa-discord"></i></div>
+            <div class="integration-title-wrap">
+              <div class="integration-title">Discord Webhook Integration</div>
+              <div class="integration-desc">Rich visual embed alerts sent to your Discord channel</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="cfg-dc-enabled" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="integration-fields">
+            <div class="form-group">
+              <label class="form-label">Discord Webhook URL</label>
+              <input type="password" id="cfg-dc-webhook" class="form-input" placeholder="https://discord.com/api/webhooks/..." />
+              <span class="form-help">Channel Settings &rarr; Integrations &rarr; Webhooks</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="alerts-action-bar">
+          <button class="btn btn-secondary" id="btn-test-alert">
+            <i class="fa-solid fa-paper-plane"></i> Send Test Alert to Phone
+          </button>
+          <button class="btn btn-primary" id="btn-save-alerts">
+            <i class="fa-solid fa-floppy-disk"></i> Save Configuration
+          </button>
+        </div>
+
+        <div class="alert-feedback-box" id="alerts-feedback-box" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Threat Simulator Modal (Live Demo Engine) -->
+  <div class="modal-overlay" id="sim-modal">
+    <div class="modal-card sim-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="sim-badge"><i class="fa-solid fa-radiation"></i> DEMO ENGINE</div>
+          <h2 class="modal-title">Threat Attack Simulator</h2>
+        </div>
+        <button class="modal-close-btn" id="sim-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="sim-intro">
+          Launch controlled threat patterns into the Deep Learning classification pipeline to test real-time threat detection, live timeline spikes, audio alert chimes, and SOC gauge responsiveness.
+        </p>
+
+        <div class="sim-grid">
+          <!-- DoS Simulation Card -->
+          <div class="sim-item-card">
+            <div class="sim-card-top">
+              <div class="sim-icon dos"><i class="fa-solid fa-triangle-exclamation"></i></div>
+              <div>
+                <div class="sim-name">TCP SYN Flood (DoS)</div>
+                <div class="sim-desc">High packet-rate half-open TCP SYN burst</div>
+              </div>
+            </div>
+            <button class="btn btn-dos w-100" onclick="triggerSimulation('dos')">
+              <i class="fa-solid fa-play"></i> Inject DoS Attack
+            </button>
+          </div>
+
+          <!-- DDoS Simulation Card -->
+          <div class="sim-item-card">
+            <div class="sim-card-top">
+              <div class="sim-icon ddos"><i class="fa-solid fa-burst"></i></div>
+              <div>
+                <div class="sim-name">UDP High-Volume Flood (DDoS)</div>
+                <div class="sim-desc">Massive volumetric UDP burst from external bot IP</div>
+              </div>
+            </div>
+            <button class="btn btn-ddos w-100" onclick="triggerSimulation('ddos')">
+              <i class="fa-solid fa-play"></i> Inject DDoS Attack
+            </button>
+          </div>
+
+          <!-- Recon Simulation Card -->
+          <div class="sim-item-card">
+            <div class="sim-card-top">
+              <div class="sim-icon recon"><i class="fa-solid fa-radar"></i></div>
+              <div>
+                <div class="sim-name">Sequential Port Scan (Recon)</div>
+                <div class="sim-desc">Multi-port reconnaissance probe across common IoT ports</div>
+              </div>
+            </div>
+            <button class="btn btn-recon w-100" onclick="triggerSimulation('recon')">
+              <i class="fa-solid fa-play"></i> Inject Port Scan
+            </button>
+          </div>
+
+          <!-- Multi-Attack Burst Card -->
+          <div class="sim-item-card">
+            <div class="sim-card-top">
+              <div class="sim-icon burst"><i class="fa-solid fa-bolt"></i></div>
+              <div>
+                <div class="sim-name">Multi-Threat Surge (5x Mix)</div>
+                <div class="sim-desc">Interleaved burst of DoS, DDoS, and Recon threats</div>
+              </div>
+            </div>
+            <button class="btn btn-burst w-100" onclick="triggerSimulation('burst', 5)">
+              <i class="fa-solid fa-bolt"></i> Launch Threat Surge
+            </button>
+          </div>
+        </div>
+
+        <div class="sim-status-box" id="sim-status-box" style="display: none;">
+          <div class="sim-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+          <span id="sim-status-text">Injecting attack traffic into IDS engine...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quarantine / Blocked Attackers Modal (Active IPS) -->
+  <div class="modal-overlay" id="quarantine-modal">
+    <div class="modal-card quarantine-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="quarantine-badge"><i class="fa-solid fa-ban"></i> IPS QUARANTINE</div>
+          <h2 class="modal-title">Blocked Attacker Quarantine Pool</h2>
+        </div>
+        <button class="modal-close-btn" id="quarantine-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="quarantine-status-bar">
+          <div class="quarantine-status-info">
+            <span class="status-indicator-dot online"></span>
+            <strong>Active Firewall Defense:</strong> Attackers with <strong>&ge; 90% AI Confidence</strong> are automatically dropped via Windows Firewall rules.
+          </div>
+          <div class="quarantine-count-badge" id="quarantine-modal-counter">0 Active Blocks</div>
+        </div>
+
+        <!-- Manual Block Input -->
+        <div class="manual-block-bar">
+          <input type="text" id="manual-block-ip" class="form-input" placeholder="Manual IP quarantine (e.g. 192.168.1.250)" />
+          <button class="btn btn-danger" onclick="triggerManualBlock()">
+            <i class="fa-solid fa-hand"></i> Quarantine IP
+          </button>
+        </div>
+
+        <!-- Blocked IPs List -->
+        <div class="quarantine-table-wrap">
+          <table class="quarantine-table">
+            <thead>
+              <tr>
+                <th>Attacker IP</th>
+                <th>Threat Reason</th>
+                <th>Confidence</th>
+                <th>Quarantine Time</th>
+                <th>Firewall Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="quarantine-table-body">
+              <tr class="empty-row"><td colspan="6">No IP addresses currently quarantined.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Remote QR Connect Modal -->
+  <div class="modal-overlay" id="qr-modal">
+    <div class="modal-card qr-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="qr-badge"><i class="fa-solid fa-mobile-screen-button"></i> MOBILE SOC REMOTE</div>
+          <h2 class="modal-title">Smartphone Command Center Pairing</h2>
+        </div>
+        <button class="modal-close-btn" id="qr-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <p class="sim-intro">
+          Scan this QR Code with your mobile phone camera to open the <strong>Mobile SOC Remote Controller</strong>. Control IPS firewall defense, inject live attacks, and monitor traffic right from your smartphone!
+        </p>
+
+        <!-- QR Code Canvas Wrap -->
+        <div class="qr-container-wrap">
+          <div id="qrcode-box" class="qrcode-box"></div>
+        </div>
+
+        <div class="qr-info-bar">
+          <div class="qr-url-title">Direct Local Network URL:</div>
+          <a href="#" id="qr-direct-link" target="_blank" class="qr-direct-url mono">http://.../mobile</a>
+          <span class="qr-help-note"><i class="fa-solid fa-wifi"></i> Ensure your phone is connected to the same Wi-Fi or Hotspot network</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Socket.IO & Application Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
+

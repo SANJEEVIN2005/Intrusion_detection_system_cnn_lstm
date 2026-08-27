@@ -1,0 +1,20 @@
+% =========================================================================
+% IEEE Table: Ablation Study Comparison (CNN vs CNN-LSTM vs Proposed CNN-LSTM-Attention)
+% Auto-generated for direct inclusion in LaTeX / Overleaf
+% =========================================================================
+
+\begin{table*}[t]
+\centering
+\caption{Ablation Study Performance Comparison on IoT Intrusion Detection}
+\label{tab:ablation_comparison}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{Architecture} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{Macro F1} & \textbf{Recon F1} & \textbf{MCC} & \textbf{Params} & \textbf{Latency} \\
+\hline
+1D-CNN (Baseline [1]) & 98.79\% & 98.80\% & 98.79\% & 98.79\% & 99.83\% & 0.9840 & 47,716 & 20.7~\$\mu\$s \\
+CNN-LSTM (Ikhlas et al.) & 98.27\% & 98.28\% & 98.27\% & 98.27\% & 99.70\% & 0.9769 & 35,940 & 32.5~\$\mu\$s \\
+\textbf{CNN-LSTM-Attention (Proposed)} & \textbf{97.86\%} & \textbf{97.88\%} & \textbf{97.86\%} & \textbf{97.86\%} & \textbf{99.53\%} & \textbf{0.9715} & 38,053 & 29.5~\$\mu\$s \\
+\hline
+\end{tabular}
+\end{table*}

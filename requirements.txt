@@ -1,0 +1,10 @@
+torch>=2.2
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+matplotlib>=3.7
+pytest>=7.4
+flask>=3.0
+flask-socketio>=5.3
+cicflowmeter==0.2.0
+scapy>=2.5

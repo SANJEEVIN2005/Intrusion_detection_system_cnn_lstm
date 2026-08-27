@@ -1,0 +1,21 @@
+% =========================================================================
+% IEEE Table: Adversarial Evasion Robustness Benchmark (FGSM & PGD Resistance)
+% =========================================================================
+
+\begin{table*}[t]
+\centering
+\caption{Adversarial Robustness Comparison Under Gradient-Based Evasion Attacks}
+\label{tab:adversarial_robustness}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|c|c|c||c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\textbf{Architecture}} & \multicolumn{5}{c||}{\textbf{FGSM Accuracy (\%) Across Perturbation $\epsilon$}} & \multicolumn{5}{c|}{\textbf{PGD Accuracy (\%) Across Perturbation $\epsilon$}} \\
+\cline{2-11}
+ & $\epsilon=0.0$ & $\epsilon=0.02$ & $\epsilon=0.05$ & $\epsilon=0.08$ & $\epsilon=0.10$ & $\epsilon=0.0$ & $\epsilon=0.02$ & $\epsilon=0.05$ & $\epsilon=0.08$ & $\epsilon=0.10$ \\
+\hline
+1D-CNN Baseline [1] & 98.5\% & 57.6\% & 23.5\% & 17.3\% & 15.6\% & 98.5\% & 48.7\% & 18.4\% & 14.0\% & 9.7\% \\
+CNN-LSTM (Ikhlas et al.) & 98.1\% & 46.2\% & 17.2\% & 16.8\% & 19.0\% & 98.1\% & 32.1\% & 2.6\% & 1.3\% & 0.8\% \\
+\textbf{CNN-LSTM-Attention (Proposed)} & \textbf{98.3\%} & \textbf{35.9\%} & \textbf{14.1\%} & \textbf{11.0\%} & \textbf{9.4\%} & \textbf{98.3\%} & \textbf{22.3\%} & \textbf{3.8\%} & \textbf{2.4\%} & \textbf{2.2\%} \\
+\hline
+\end{tabular}
+\end{table*}

@@ -1,0 +1,41 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Sensitive Personal Configurations & Tokens
+artifacts/alerts_config.json
+.env
+.env.local
+*.key
+*.pem
+
+# Large Dataset Files (>100MB GitHub limit)
+data/*.csv
+test.csv
+*.pcap
+*.pcapng
+
+# Runtime Session & Dynamic Logs
+artifacts/live_flows.csv
+*.log
+scratch/
+
+# IDE & OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

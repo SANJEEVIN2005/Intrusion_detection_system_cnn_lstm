@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>IoT IDS — Mobile SOC Remote</title>
+  <link rel="stylesheet" href="/static/mobile.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+  <!-- Mobile Header -->
+  <header class="mobile-nav">
+    <div class="mobile-nav-top">
+      <div class="mobile-logo-wrap">
+        <div class="mobile-logo-badge"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+          <h1 class="mobile-app-title">IoT SOC Remote</h1>
+          <div class="mobile-app-sub">Mobile Controller</div>
+        </div>
+      </div>
+
+      <div class="mobile-status-pill">
+        <span class="status-dot connected" id="mobile-status-dot"></span>
+        <span id="mobile-status-text">Connected</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Container -->
+  <main class="mobile-content">
+
+    <!-- Threat Gauge & Live Level Card -->
+    <div class="mobile-card threat-hero-card">
+      <div class="threat-hero-top">
+        <span class="mobile-card-title">Security Threat Index</span>
+        <span class="threat-badge badge-secure" id="mobile-threat-badge">SECURE</span>
+      </div>
+      <div class="threat-hero-middle">
+        <div class="threat-hero-score" id="mobile-threat-score">0%</div>
+        <div class="threat-hero-desc" id="mobile-threat-desc">Watching network flows</div>
+      </div>
+      <div class="threat-bar-track">
+        <div class="threat-bar-fill" id="mobile-threat-bar" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Quick Stats Grid -->
+    <div class="mobile-stats-grid">
+      <div class="m-stat-box">
+        <div class="m-stat-val" id="m-stat-total">0</div>
+        <div class="m-stat-label">Total Flows</div>
+      </div>
+      <div class="m-stat-box threat">
+        <div class="m-stat-val text-danger" id="m-stat-attacks">0</div>
+        <div class="m-stat-label">Attacks Intercepted</div>
+      </div>
+      <div class="m-stat-box ips">
+        <div class="m-stat-val text-warning" id="m-stat-blocked">0</div>
+        <div class="m-stat-label">Quarantined IPs</div>
+      </div>
+    </div>
+
+    <!-- Active IPS Defense Controller -->
+    <div class="mobile-card">
+      <div class="mobile-row-between">
+        <div>
+          <div class="mobile-card-title"><i class="fa-solid fa-shield-virus text-ips"></i> Active IPS Auto-Defense</div>
+          <div class="mobile-card-sub">Auto-blocks attackers with &ge;90% confidence</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="m-ips-toggle" checked />
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Remote Attack Injection Control Station -->
+    <div class="mobile-card">
+      <div class="mobile-card-title mb-3"><i class="fa-solid fa-radiation text-danger"></i> Remote Attack Simulator</div>
+      <div class="m-attack-grid">
+        <button class="m-btn-attack dos" onclick="triggerMobileAttack('dos')">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>DoS SYN Flood</span>
+        </button>
+        <button class="m-btn-attack ddos" onclick="triggerMobileAttack('ddos')">
+          <i class="fa-solid fa-burst"></i>
+          <span>DDoS UDP Burst</span>
+        </button>
+        <button class="m-btn-attack recon" onclick="triggerMobileAttack('recon')">
+          <i class="fa-solid fa-radar"></i>
+          <span>Port Scan (Recon)</span>
+        </button>
+        <button class="m-btn-attack burst" onclick="triggerMobileAttack('burst', 5)">
+          <i class="fa-solid fa-bolt"></i>
+          <span>5x Threat Surge</span>
+        </button>
+      </div>
+      <div id="m-sim-feedback" class="m-feedback-pill" style="display: none;"></div>
+    </div>
+
+    <!-- Quarantine Pool Live Inspector -->
+    <div class="mobile-card">
+      <div class="mobile-row-between mb-2">
+        <div class="mobile-card-title"><i class="fa-solid fa-ban text-danger"></i> Quarantined Attackers</div>
+        <span class="m-counter-tag" id="m-quarantine-count">0 Blocked</span>
+      </div>
+      <div class="m-quarantine-list" id="m-quarantine-list">
+        <div class="m-empty-text">No active threats in quarantine.</div>
+      </div>
+    </div>
+
+    <!-- Live Threat Feed Stream -->
+    <div class="mobile-card">
+      <div class="mobile-card-title mb-2"><i class="fa-solid fa-satellite-dish text-cyan"></i> Live Flow Feed</div>
+      <div class="m-flow-feed" id="m-flow-feed">
+        <!-- Live flow cards injected here -->
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="mobile-footer">
+    <span>IoT Intrusion Detection & Prevention System</span>
+    <span class="mono">CNN-LSTM-Attention • Active IPS</span>
+  </footer>
+
+  <!-- Socket.IO & Mobile Client Script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/static/mobile.js"></script>
+</body>
+</html>
