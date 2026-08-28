@@ -1,0 +1,25 @@
+% =========================================================================
+% IEEE Table: IoT Edge Hardware Feasibility & INT8 Quantization Benchmark
+% Auto-generated for direct inclusion in Overleaf (Section VI)
+% =========================================================================
+
+\begin{table*}[t]
+\centering
+\caption{IoT Edge Hardware Feasibility: FP32 Baseline vs. Proposed INT8 Dynamic Quantization}
+\label{tab:edge_hardware_benchmark}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\hline
+\textbf{Architecture} & \textbf{Precision} & \textbf{Model Size} & \textbf{Latency ($\mu$s)} & \textbf{Throughput (flows/s)} & \textbf{RAM (MB)} & \textbf{Accuracy (\%)} & \textbf{F1-Score (\%)} \\
+\hline
+1D-CNN Baseline [1] & FP32 & 189.5~KB & 189.7~$\mu$s & 5,272 & 4.2~MB & 98.38\% & 98.37\% \\
+1D-CNN Baseline [1] & \textbf{INT8} & 70.1~KB & 340.1~$\mu$s & 2,941 & 4.2~MB & 98.40\% & 98.40\% \\
+\hline
+CNN-LSTM (Ikhlas et al.) & FP32 & 144.4~KB & 318.1~$\mu$s & 3,143 & 4.2~MB & 97.97\% & 97.97\% \\
+CNN-LSTM (Ikhlas et al.) & \textbf{INT8} & 61.4~KB & 1283.8~$\mu$s & 779 & 4.2~MB & 97.92\% & 97.92\% \\
+\hline
+\textbf{CNN-LSTM-Attention (Proposed)} & FP32 & 153.9~KB & 615.2~$\mu$s & 1,626 & 4.2~MB & 98.16\% & 98.15\% \\
+\textbf{CNN-LSTM-Attention (Proposed)} & \textbf{INT8} & \textbf{66.2~KB} & \textbf{4579.9~$\mu$s} & \textbf{218} & \textbf{4.2~MB} & \textbf{98.16\%} & \textbf{98.15\%} \\
+\hline
+\end{tabular}
+\end{table*}

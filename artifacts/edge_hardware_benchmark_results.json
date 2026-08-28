@@ -1,0 +1,71 @@
+{
+  "cnn_baseline": {
+    "fp32": {
+      "size_kb": 189.51,
+      "latency_us": 189.68,
+      "throughput_fps": 5272.0,
+      "peak_ram_mb": 4.2,
+      "accuracy": 98.38,
+      "precision": 98.39,
+      "recall": 98.37,
+      "f1_score": 98.37
+    },
+    "int8": {
+      "size_kb": 70.12,
+      "latency_us": 340.07,
+      "throughput_fps": 2940.6,
+      "peak_ram_mb": 4.2,
+      "accuracy": 98.4,
+      "precision": 98.41,
+      "recall": 98.4,
+      "f1_score": 98.4,
+      "cosine_similarity_fidelity": 0.999944
+    }
+  },
+  "cnn_lstm": {
+    "fp32": {
+      "size_kb": 144.44,
+      "latency_us": 318.14,
+      "throughput_fps": 3143.3,
+      "peak_ram_mb": 4.2,
+      "accuracy": 97.97,
+      "precision": 98.02,
+      "recall": 97.97,
+      "f1_score": 97.97
+    },
+    "int8": {
+      "size_kb": 61.42,
+      "latency_us": 1283.82,
+      "throughput_fps": 778.9,
+      "peak_ram_mb": 4.2,
+      "accuracy": 97.92,
+      "precision": 97.97,
+      "recall": 97.92,
+      "f1_score": 97.92,
+      "cosine_similarity_fidelity": 0.999942
+    }
+  },
+  "cnn_lstm_attention": {
+    "fp32": {
+      "size_kb": 153.92,
+      "latency_us": 615.17,
+      "throughput_fps": 1625.6,
+      "peak_ram_mb": 4.2,
+      "accuracy": 98.16,
+      "precision": 98.18,
+      "recall": 98.16,
+      "f1_score": 98.15
+    },
+    "int8": {
+      "size_kb": 66.15,
+      "latency_us": 4579.89,
+      "throughput_fps": 218.3,
+      "peak_ram_mb": 4.2,
+      "accuracy": 98.16,
+      "precision": 98.18,
+      "recall": 98.16,
+      "f1_score": 98.15,
+      "cosine_similarity_fidelity": 0.999952
+    }
+  }
+}
