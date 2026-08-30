@@ -159,18 +159,3 @@ python app.py
   ```
 
 ---
-
-## 📄 IEEE Research Paper Artifacts (Generated in `artifacts/`)
-
-1. **`paper_tables.tex`**: Formatted IEEE transaction LaTeX table comparing model architectures.
-2. **`edge_benchmark_table.tex`**: Formatted IEEE LaTeX table for Edge Hardware Quantization feasibility.
-3. **`adversarial_table.tex`**: Formatted IEEE LaTeX table for Adversarial Robustness under FGSM/PGD perturbations.
-4. **`fig_ablation_comparison.png`**: 300 DPI 4-panel ablation figure.
-5. **`fig_confusion_matrix.png`**: Normalized multi-class confusion matrix.
-6. **`fig_attention_heatmap.png`**: Self-attention feature token weight heatmap.
-7. **`fig_edge_hardware_benchmark.png`**: 4-panel hardware telemetry figure (RAM, Latency, Size, Throughput).
-8. **`fig_adversarial_robustness.png`**: Multi-step adversarial degradation curves.
-
----
-
-
