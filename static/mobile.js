@@ -112,10 +112,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const isAttack = flow.predicted_class !== "Benign";
     const card = document.createElement("div");
     card.className = `m-flow-card ${flow.predicted_class}`;
+    const srcDev = flow.src_device_name ? flow.src_device_name.split(' (')[0] : `${flow.src_ip}:${flow.src_port}`;
+    const appTag = flow.application_name ? (flow.application_name.split(' ')[0] + " " + flow.application_name.split('(')[0].trim()) : (flow.protocol || "TCP");
+
     card.innerHTML = `
       <div>
-        <div class="mono" style="font-weight:700;">${escapeHtml(flow.src_ip)} &rarr; :${flow.dst_port}</div>
-        <div style="font-size:10.5px; color:var(--text-muted);">${flow.protocol || "TCP"} • ${flow.timestamp ? flow.timestamp.split(" ")[1] || flow.timestamp : "now"}</div>
+        <div style="font-weight:700; font-size:12px; display:flex; align-items:center; gap:4px;">
+          <span>${escapeHtml(srcDev)}</span>
+        </div>
+        <div style="font-size:10.5px; color:var(--text-muted);">${escapeHtml(appTag)} • ${flow.timestamp ? flow.timestamp.split(" ")[1] || flow.timestamp : "now"}</div>
       </div>
       <div style="text-align:right;">
         <div style="font-weight:800; color:${isAttack ? 'var(--ddos)' : 'var(--benign)'};">${flow.predicted_class}</div>

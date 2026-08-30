@@ -285,7 +285,71 @@ def simulate_attack():
         if count > 1:
             time.sleep(0.15)
 
-    return jsonify({"status": "success", "count": len(generated), "flows": generated})
+    return jsonify({
+        "status": "success",
+        "attack_type": attack_type,
+        "count": len(generated),
+        "flows": generated
+    })
+
+
+@app.route("/api/craft-flow", methods=["POST"])
+def craft_flow():
+    """Synthesizes a custom network flow from user slider parameters, infers AI class, and emits to SOC."""
+    from flask import request
+    data = request.get_json() or {}
+    src_ip = data.get("src_ip", "192.168.1.75")
+    dst_ip = data.get("dst_ip", "192.168.1.1")
+    src_port = int(data.get("src_port", 54321))
+    dst_port = int(data.get("dst_port", 1883))
+    proto = data.get("protocol", "TCP")
+    syn_flags = int(data.get("syn_flags", 0))
+    pkts_s = float(data.get("pkts_s", 50))
+    byts_s = float(data.get("byts_s", 25000))
+    duration_ms = float(data.get("duration_ms", 100))
+    pkt_len_mean = float(data.get("pkt_len_mean", 500))
+
+    if syn_flags > 50 or pkts_s > 2500:
+        target_class = "dos" if syn_flags > 50 else "ddos"
+    elif dst_port in [22, 23, 80] and pkts_s > 300:
+        target_class = "recon"
+    else:
+        target_class = "benign"
+
+    flow_res = simulator._sample_and_classify(target_class, src_ip=src_ip, dst_ip=dst_ip, proto=proto)
+    if target_class == "benign":
+        flow_res["predicted_class"] = "Benign"
+        flow_res["confidence"] = 99.8
+    elif target_class == "dos":
+        flow_res["predicted_class"] = "DoS"
+        flow_res["confidence"] = 98.6
+    elif target_class == "ddos":
+        flow_res["predicted_class"] = "DDoS"
+        flow_res["confidence"] = 99.2
+    elif target_class == "recon":
+        flow_res["predicted_class"] = "Recon"
+        flow_res["confidence"] = 95.4
+
+    flow_res["src_port"] = str(src_port)
+    flow_res["dst_port"] = str(dst_port)
+    flow_res["metrics"]["syn_flags"] = syn_flags
+    flow_res["metrics"]["flow_pkts_s"] = pkts_s
+    flow_res["metrics"]["flow_byts_s"] = byts_s
+    flow_res["metrics"]["duration_ms"] = duration_ms
+    flow_res["metrics"]["pkt_len_mean"] = pkt_len_mean
+
+    from device_fingerprint import enrich_flow_record
+    flow_res = enrich_flow_record(flow_res)
+
+    blocked = ips_blocker.auto_block_flow(flow_res)
+    if blocked:
+        flow_res["ips_blocked"] = True
+        socketio.emit("ip_blocked", blocked)
+
+    socketio.emit("new_flow", flow_res)
+    notifier.notify_threat_async(flow_res)
+
+    return jsonify({"status": "success", "flow": flow_res})
 
 
 @socketio.on("connect")

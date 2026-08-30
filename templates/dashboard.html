@@ -12,8 +12,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-  <!-- Vis.js Network for Hardware-Accelerated 2D Topology Graphing -->
-  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
   <!-- QRCode.js for On-Screen Mobile Remote Pairing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- jsPDF & AutoTable for PDF Incident Reports -->
@@ -48,6 +46,10 @@
         <button class="btn btn-warning-subtle" id="btn-open-quarantine" title="View quarantined attacker IPs">
           <i class="fa-solid fa-ban"></i> <span id="quarantine-btn-text">Quarantine (0)</span>
         </button>
+        <!-- Flow Crafting Studio -->
+        <button class="btn btn-primary" id="btn-open-craft" title="Craft custom network flows to probe the AI engine">
+          <i class="fa-solid fa-sliders"></i> <span>Flow Studio</span>
+        </button>
         <!-- Mobile Remote QR Connect -->
         <button class="btn btn-secondary" id="btn-open-qr" title="Scan QR Code to control IDS from smartphone">
           <i class="fa-solid fa-mobile-screen-button"></i> <span>Mobile Remote</span>
@@ -60,6 +62,16 @@
         <button class="btn btn-secondary" id="btn-open-alerts" title="Configure instant Telegram & Discord push alerts">
           <i class="fa-solid fa-bell"></i> <span>Alerts</span>
         </button>
+        <!-- Multi-Theme Switcher -->
+        <div class="theme-select-pill">
+          <i class="fa-solid fa-palette"></i>
+          <select id="theme-select" class="theme-select-input" onchange="changeTheme(this.value)">
+            <option value="dark">🌑 Dark Cyber</option>
+            <option value="light">☀️ Projector Light</option>
+            <option value="matrix">🟩 Matrix Tactical</option>
+            <option value="dracula">💜 Dracula HUD</option>
+          </select>
+        </div>
         <button class="btn btn-secondary" id="btn-pause-stream" title="Pause / Resume live scrolling">
           <i class="fa-solid fa-pause" id="pause-icon"></i> <span id="pause-text">Pause</span>
         </button>
@@ -147,9 +159,8 @@
       <button class="view-tab-btn active" id="view-tab-charts" onclick="switchSOCView('charts')">
         <i class="fa-solid fa-chart-line"></i> SOC Traffic & Analytics
       </button>
-      <button class="view-tab-btn" id="view-tab-topology" onclick="switchSOCView('topology')">
-        <i class="fa-solid fa-circle-nodes"></i> Live Network Topology Map
-        <span class="live-pulse-dot"></span>
+      <button class="view-tab-btn" id="view-tab-soar" onclick="switchSOCView('soar')">
+        <i class="fa-solid fa-book-skull"></i> SOAR Playbooks & Automation
       </button>
     </div>
 
@@ -179,43 +190,113 @@
           <canvas id="threatDonutChart"></canvas>
         </div>
       </div>
+
+      <!-- 8-Dimensional Feature Spider Radar Chart -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fa-solid fa-spider"></i> 8-D Live Feature Spider Radar</div>
+          <div class="chart-stat" id="radar-threat-stat">Status: Baseline (Safe)</div>
+        </div>
+        <div class="chart-canvas-wrap radar-wrap">
+          <canvas id="featureSpiderChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Hardware Speedometer & Edge Feasibility Card -->
+      <div class="card chart-card speedo-card">
+        <div class="chart-header">
+          <div class="chart-title"><i class="fa-solid fa-gauge-high"></i> Hardware Edge Telemetry</div>
+          <div class="chart-stat"><span class="badge Benign">INT8 Optimized</span></div>
+        </div>
+        <div class="speedo-grid">
+          <div class="speedo-item">
+            <div class="speedo-label">Inference Latency</div>
+            <div class="speedo-val"><span id="speedo-latency">38.1</span> <small>µs</small></div>
+            <div class="speedo-sub">Per-flow forward pass</div>
+          </div>
+          <div class="speedo-item">
+            <div class="speedo-label">Throughput Capacity</div>
+            <div class="speedo-val"><span id="speedo-fps">26,230</span> <small>fps</small></div>
+            <div class="speedo-sub">Line-rate CPU capacity</div>
+          </div>
+          <div class="speedo-item">
+            <div class="speedo-label">RAM Footprint</div>
+            <div class="speedo-val"><span>4.2</span> <small>MB</small></div>
+            <div class="speedo-sub">Ultra-compact memory</div>
+          </div>
+          <div class="speedo-item">
+            <div class="speedo-label">Model Precision</div>
+            <div class="speedo-val"><span style="color: var(--accent-cyan);">INT8 / FP32</span></div>
+            <div class="speedo-sub">0.999952 fidelity</div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Live Interactive Network Topology Graph Section (Vis.js) -->
-    <section class="topology-section" id="topology-view-container" style="display: none;">
-      <div class="card topology-card">
-        <div class="topology-header">
-          <div class="topology-title-wrap">
-            <div class="chart-title"><i class="fa-solid fa-circle-nodes"></i> Real-Time IoT Network Topology Graph</div>
-            <div class="topology-stats-pill">
-              <span id="topo-nodes-count">Nodes: 1</span> • 
-              <span id="topo-links-count">Active Links: 0</span> • 
-              <span id="topo-attack-count" class="threat-text">Threats: 0</span>
+    <!-- SOAR Security Playbooks & Runbooks Section -->
+    <section class="soar-section" id="soar-view-container" style="display: none;">
+      <div class="card soar-card">
+        <div class="soar-header">
+          <div class="chart-title"><i class="fa-solid fa-book-skull"></i> Autonomous Security Orchestration, Automation & Response (SOAR)</div>
+          <div class="chart-stat">4 Active Mitigation Policies</div>
+        </div>
+        <div class="playbooks-grid">
+          <!-- Playbook 1 -->
+          <div class="playbook-item active">
+            <div class="pb-header">
+              <span class="pb-badge ddos">POLICY-01 · VOLUMETRIC DOS</span>
+              <label class="pb-switch"><input type="checkbox" checked><span class="pb-slider"></span></label>
+            </div>
+            <h3 class="pb-title">Active Firewall Auto-Quarantine</h3>
+            <p class="pb-desc">Trigger: <code>Confidence ≥ 90.0% AND Class == 'DoS'</code></p>
+            <div class="pb-actions-list">
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Execute <code>netsh advfirewall</code> kernel rule</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Isolate Attacker into Quarantine Pool</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Dispatch Telegram Alert with XAI Card</div>
             </div>
           </div>
-
-          <div class="topology-actions">
-            <button class="btn btn-xs btn-secondary" onclick="fitTopologyMap()" title="Fit and center map">
-              <i class="fa-solid fa-compress"></i> Center
-            </button>
-            <button class="btn btn-xs btn-secondary" id="btn-toggle-physics" onclick="toggleTopologyPhysics()" title="Toggle physics simulation">
-              <i class="fa-solid fa-atom"></i> Physics: On
-            </button>
-            <button class="btn btn-xs btn-danger-subtle" onclick="resetTopologyMap()" title="Reset to gateway">
-              <i class="fa-solid fa-rotate-left"></i> Reset
-            </button>
+          <!-- Playbook 2 -->
+          <div class="playbook-item active">
+            <div class="pb-header">
+              <span class="pb-badge ddos">POLICY-02 · DDOS SURGE</span>
+              <label class="pb-switch"><input type="checkbox" checked><span class="pb-slider"></span></label>
+            </div>
+            <h3 class="pb-title">Multi-Node Subnet Defense</h3>
+            <p class="pb-desc">Trigger: <code>Flow Rate > 5,000 pkts/s AND Class == 'DDoS'</code></p>
+            <div class="pb-actions-list">
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Ingress Flood Filtration</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Throttle Victim Port Bandwidth</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Mobile Remote Emergency Haptic Alert</div>
+            </div>
           </div>
-        </div>
-
-        <div class="topology-legend-bar">
-          <div class="legend-item"><span class="legend-circle gateway"></span> <strong>Gateway Node:</strong> IoT IDS Server (Laptop)</div>
-          <div class="legend-item"><span class="legend-circle local"></span> <strong>Local Devices:</strong> Smartphone / Sensors</div>
-          <div class="legend-item"><span class="legend-circle remote"></span> <strong>Remote Hosts:</strong> Web / Cloud Servers</div>
-          <div class="legend-item"><span class="legend-circle attacker"></span> <strong>Quarantined Attacker:</strong> Blocked by IPS (≥90%)</div>
-        </div>
-
-        <div class="topology-canvas-container" id="topology-network-container">
-          <div class="topology-overlay-hint">💡 Tip: Drag nodes, scroll to zoom, click any device to inspect</div>
+          <!-- Playbook 3 -->
+          <div class="playbook-item active">
+            <div class="pb-header">
+              <span class="pb-badge recon">POLICY-03 · PORT RECON</span>
+              <label class="pb-switch"><input type="checkbox" checked><span class="pb-slider"></span></label>
+            </div>
+            <h3 class="pb-title">Reconnaissance Triage & Watchlist</h3>
+            <p class="pb-desc">Trigger: <code>Multi-Port Probing AND Class == 'Recon'</code></p>
+            <div class="pb-actions-list">
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Add IP to 5-Minute Suspicious Watchlist</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Suppress ICMP Port-Unreachable Beacons</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Flag Node in Security Incident Log</div>
+            </div>
+          </div>
+          <!-- Playbook 4 -->
+          <div class="playbook-item active">
+            <div class="pb-header">
+              <span class="pb-badge benign">POLICY-04 · IOT TELEMETRY</span>
+              <label class="pb-switch"><input type="checkbox" checked><span class="pb-slider"></span></label>
+            </div>
+            <h3 class="pb-title">Fast-Path IoT Forwarding</h3>
+            <p class="pb-desc">Trigger: <code>Class == 'Benign' AND App in ['MQTT', 'CoAP']</code></p>
+            <div class="pb-actions-list">
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Zero-Latency Forwarding to Cloud Broker</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Cache Hardware Device OUI Fingerprint</div>
+              <div class="pb-act"><i class="fa-solid fa-check"></i> Whitelist Application Port in Fast Queue</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -244,10 +325,10 @@
           <thead>
             <tr>
               <th>Timestamp</th>
-              <th>Source (IP:Port)</th>
-              <th>Destination (IP:Port)</th>
-              <th>Protocol</th>
-              <th>Predicted Class</th>
+              <th>Source Device</th>
+              <th>Destination Device</th>
+              <th>Application</th>
+              <th>Class</th>
               <th>Confidence</th>
               <th>Details</th>
             </tr>
@@ -272,21 +353,24 @@
       </div>
 
       <div class="modal-body" id="modal-body">
-        <!-- 5-Tuple Network Header -->
-        <div class="modal-section">
-          <div class="modal-section-title"><i class="fa-solid fa-network-wired"></i> Connection 5-Tuple</div>
+        <!-- IoT Device & L7 Application Fingerprint -->
+        <div class="modal-section device-profiler-section">
+          <div class="modal-section-title"><i class="fa-solid fa-fingerprint"></i> IoT Device & L7 Application Profile</div>
           <div class="modal-grid-3">
-            <div class="modal-metric">
-              <span class="metric-label">Source</span>
-              <span class="metric-val mono" id="modal-src">192.168.1.1:443</span>
+            <div class="modal-metric device-metric">
+              <span class="metric-label">Source Device</span>
+              <span class="metric-val" id="modal-src-device">📹 ESP32-Cam</span>
+              <span class="metric-sub mono" id="modal-src">192.168.1.45:52180</span>
             </div>
-            <div class="modal-metric">
-              <span class="metric-label">Destination</span>
-              <span class="metric-val mono" id="modal-dst">104.244.42.1:54321</span>
+            <div class="modal-metric device-metric">
+              <span class="metric-label">Destination Device</span>
+              <span class="metric-val" id="modal-dst-device">🌐 IoT-Gateway</span>
+              <span class="metric-sub mono" id="modal-dst">192.168.1.1:1883</span>
             </div>
-            <div class="modal-metric">
-              <span class="metric-label">Protocol & Time</span>
-              <span class="metric-val mono" id="modal-proto">TCP | 21:50:00</span>
+            <div class="modal-metric device-metric">
+              <span class="metric-label">Application & Layer 7 Protocol</span>
+              <span class="metric-val" id="modal-app-name">📡 MQTT (IoT Telemetry)</span>
+              <span class="metric-sub mono" id="modal-proto">TCP | 21:50:00</span>
             </div>
           </div>
         </div>
@@ -579,6 +663,86 @@
           <div class="qr-url-title">Direct Local Network URL:</div>
           <a href="#" id="qr-direct-link" target="_blank" class="qr-direct-url mono">http://.../mobile</a>
           <span class="qr-help-note"><i class="fa-solid fa-wifi"></i> Ensure your phone is connected to the same Wi-Fi or Hotspot network</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flow Crafting Studio Modal -->
+  <div class="modal-overlay" id="craft-modal">
+    <div class="modal-card craft-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badge" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan);"><i class="fa-solid fa-sliders"></i> FLOW STUDIO</div>
+          <h2 class="modal-title">Interactive Network Flow Crafting Sandbox</h2>
+        </div>
+        <button class="modal-close-btn" id="craft-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="sim-intro">
+          Manually craft synthetic network flow parameters using the sliders below to probe the <strong>CNN-LSTM-Attention</strong> deep learning model in real time.
+        </p>
+
+        <div class="craft-sliders-grid">
+          <!-- SYN Flags -->
+          <div class="craft-slider-card">
+            <div class="craft-slider-header">
+              <span><i class="fa-solid fa-flag"></i> SYN Flag Count</span>
+              <span class="craft-val mono" id="craft-syn-val">0</span>
+            </div>
+            <input type="range" id="craft-syn-slider" min="0" max="300" value="0" class="form-range" oninput="updateCraftPreview()">
+            <div class="craft-slider-sub">Normal: 0–2 | DoS Flood: > 50</div>
+          </div>
+
+          <!-- Flow Packet Rate -->
+          <div class="craft-slider-card">
+            <div class="craft-slider-header">
+              <span><i class="fa-solid fa-gauge"></i> Packet Rate (pkts/s)</span>
+              <span class="craft-val mono" id="craft-pkts-val">50</span>
+            </div>
+            <input type="range" id="craft-pkts-slider" min="5" max="5000" value="50" class="form-range" oninput="updateCraftPreview()">
+            <div class="craft-slider-sub">Normal: 5–120 | DDoS Burst: > 2500</div>
+          </div>
+
+          <!-- Flow Byte Rate -->
+          <div class="craft-slider-card">
+            <div class="craft-slider-header">
+              <span><i class="fa-solid fa-database"></i> Flow Byte Rate (bytes/s)</span>
+              <span class="craft-val mono" id="craft-byts-val">25,000</span>
+            </div>
+            <input type="range" id="craft-byts-slider" min="500" max="500000" step="500" value="25000" class="form-range" oninput="updateCraftPreview()">
+            <div class="craft-slider-sub">Bandwidth load</div>
+          </div>
+
+          <!-- Destination Port -->
+          <div class="craft-slider-card">
+            <div class="craft-slider-header">
+              <span><i class="fa-solid fa-door-open"></i> Target Port / Protocol</span>
+              <span class="craft-val mono" id="craft-port-val">1883 (MQTT)</span>
+            </div>
+            <select id="craft-port-select" class="form-input" onchange="updateCraftPreview()">
+              <option value="1883">1883 - MQTT IoT Telemetry</option>
+              <option value="5683">5683 - CoAP Constrained REST</option>
+              <option value="554">554 - RTSP Video Stream</option>
+              <option value="502">502 - Modbus SCADA Industrial</option>
+              <option value="80">80 - HTTP Web Service</option>
+              <option value="443">443 - HTTPS Encrypted</option>
+              <option value="22">22 - SSH Remote Terminal</option>
+              <option value="23">23 - Telnet Insecure</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Real-Time AI Prediction Preview -->
+        <div class="craft-preview-bar">
+          <div class="craft-pred-info">
+            <span class="craft-pred-label">Expected AI Classification:</span>
+            <span class="badge Benign" id="craft-predicted-badge">Benign Traffic (99.8%)</span>
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="dispatchCraftedFlow()">
+            <i class="fa-solid fa-paper-plane"></i> Inject Custom Flow to Live IDS
+          </button>
         </div>
       </div>
     </div>

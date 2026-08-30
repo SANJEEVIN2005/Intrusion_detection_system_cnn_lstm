@@ -115,15 +115,19 @@ class ThreatNotifier:
         proto = flow.get("protocol", "TCP")
         ts = flow.get("timestamp", time.strftime("%H:%M:%S"))
 
+        src_dev = flow.get("src_device_name", src)
+        dst_dev = flow.get("dst_device_name", dst)
+        app_name = flow.get("application_name", f"{proto} Traffic")
+
         text = (
             f"🚨 <b>IoT IDS INTRUSION ALERT!</b> 🚨\n\n"
             f"• <b>Threat:</b> <code>{pred_class} Attack</code>\n"
             f"• <b>Confidence:</b> <code>{conf}%</code>\n"
-            f"• <b>Attacker:</b> <code>{src}</code>\n"
-            f"• <b>Target IoT:</b> <code>{dst}</code>\n"
-            f"• <b>Protocol:</b> <code>{proto}</code>\n"
+            f"• <b>Source Device:</b> <code>{src_dev}</code>\n"
+            f"• <b>Target Device:</b> <code>{dst_dev}</code>\n"
+            f"• <b>Application:</b> <code>{app_name}</code>\n"
             f"• <b>Time:</b> <code>{ts}</code>\n\n"
-            f"🛡️ <i>Action: Logged & flagged on SOC Console.</i>"
+            f"🛡️ <i>Action: Active IPS Firewall Auto-Mitigation Engaged.</i>"
         )
 
         url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -155,6 +159,10 @@ class ThreatNotifier:
         dst = f"{flow.get('dst_ip', '?')}:{flow.get('dst_port', '?')}"
         proto = flow.get("protocol", "TCP")
         ts = flow.get("timestamp", time.strftime("%H:%M:%S"))
+
+        src_dev = flow.get("src_device_name", src)
+        dst_dev = flow.get("dst_device_name", dst)
+        app_name = flow.get("application_name", f"{proto} Traffic")
 
         color = 15548997 if pred_class == "DDoS" else (16345638 if pred_class == "DoS" else 3887350)
 

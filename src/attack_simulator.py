@@ -22,20 +22,38 @@ from model import build_cnn_lstm
 class AttackSimulator:
     """Generates authentic threat flows for testing and live evaluation."""
 
-    def __init__(self, artifacts_dir="artifacts"):
+    def __init__(self, artifacts_dir="artifacts", use_quantized: bool = True):
         self.artifacts_dir = artifacts_dir
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.use_quantized = use_quantized
 
-        # Load CNN-LSTM model
-        checkpoint = torch.load(
-            os.path.join(artifacts_dir, "cnn_lstm_ids.pt"), map_location=self.device
-        )
-        self.model = build_cnn_lstm(
-            input_dim=checkpoint["input_dim"], num_classes=checkpoint["num_classes"]
-        )
+        # Load proposed CNN-LSTM-Attention model (or fallback to CNN-LSTM)
+        attn_path = os.path.join(artifacts_dir, "cnn_lstm_attention_ids.pt")
+        base_path = os.path.join(artifacts_dir, "cnn_lstm_ids.pt")
+
+        if os.path.exists(attn_path):
+            from model import build_cnn_lstm_attention
+            checkpoint = torch.load(attn_path, map_location=self.device)
+            self.model = build_cnn_lstm_attention(
+                input_dim=checkpoint["input_dim"], num_classes=checkpoint["num_classes"]
+            )
+        else:
+            checkpoint = torch.load(base_path, map_location=self.device)
+            self.model = build_cnn_lstm(
+                input_dim=checkpoint["input_dim"], num_classes=checkpoint["num_classes"]
+            )
+
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.model.to(self.device)
         self.model.eval()
+
+        if self.use_quantized:
+            from quantize_model import quantize_network
+            self.model = quantize_network(self.model)
+            self.model.eval()
+            self.precision = "INT8"
+        else:
+            self.precision = "FP32"
 
         # Load label encoder
         with open(os.path.join(artifacts_dir, "label_encoder.pkl"), "rb") as f:
@@ -147,7 +165,8 @@ class AttackSimulator:
         src_port = str(self.rng.integers(1024, 65535))
         dst_port = str(random.choice([80, 443, 8080, 1883, 22, 53]))
 
-        return {
+        from device_fingerprint import enrich_flow_record
+        flow_out = {
             "timestamp": time.strftime("%H:%M:%S"),
             "src_ip": src_ip,
             "dst_ip": dst_ip,
@@ -173,6 +192,7 @@ class AttackSimulator:
                 "ack_flags": ack_flags,
             },
         }
+        return enrich_flow_record(flow_out)
 
     def generate_dos_flow(self, attacker_ip=None, victim_ip="192.168.1.100") -> dict:
         """Simulates a TCP SYN Flood (DoS) flow."""

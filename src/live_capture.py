@@ -471,20 +471,40 @@ class LiveFlowManager:
 
 
 class LiveClassifier:
-    """Loads the trained model + scaler once, then classifies live flow dicts."""
+    """Loads the trained model + scaler once, then classifies live flow dicts using Quantized INT8 weights."""
 
-    def __init__(self, artifacts_dir="artifacts"):
+    def __init__(self, artifacts_dir="artifacts", use_quantized: bool = True):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.use_quantized = use_quantized
 
-        checkpoint = torch.load(
-            os.path.join(artifacts_dir, "cnn_lstm_ids.pt"), map_location=self.device
-        )
-        self.model = build_cnn_lstm(
-            input_dim=checkpoint["input_dim"], num_classes=checkpoint["num_classes"]
-        )
+        # Prioritize proposed novel CNN-LSTM-Attention model
+        attn_path = os.path.join(artifacts_dir, "cnn_lstm_attention_ids.pt")
+        base_path = os.path.join(artifacts_dir, "cnn_lstm_ids.pt")
+
+        if os.path.exists(attn_path):
+            from model import build_cnn_lstm_attention
+            checkpoint = torch.load(attn_path, map_location=self.device)
+            self.model = build_cnn_lstm_attention(
+                input_dim=checkpoint["input_dim"], num_classes=checkpoint["num_classes"]
+            )
+        else:
+            checkpoint = torch.load(base_path, map_location=self.device)
+            self.model = build_cnn_lstm(
+                input_dim=checkpoint["input_dim"], num_classes=checkpoint["num_classes"]
+            )
+
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.model.to(self.device)
         self.model.eval()
+
+        # Apply INT8 dynamic edge quantization for microsecond CPU inference
+        if self.use_quantized:
+            from quantize_model import quantize_network
+            self.model = quantize_network(self.model)
+            self.model.eval()
+            self.precision = "INT8"
+        else:
+            self.precision = "FP32"
 
         with open(os.path.join(artifacts_dir, "scaler.pkl"), "rb") as f:
             self.scaler = pickle.load(f)
@@ -534,7 +554,8 @@ class LiveClassifier:
         tot_bwd = int(float(live_flow.get("tot_bwd_pkts", 0) or 0))
         duration_us = float(live_flow.get("flow_duration", 0) or 0)
 
-        return {
+        from device_fingerprint import enrich_flow_record
+        flow_out = {
             "timestamp": time.strftime("%H:%M:%S"),
             "src_ip": str(live_flow.get("src_ip", "?")),
             "dst_ip": str(live_flow.get("dst_ip", "?")),
@@ -560,6 +581,7 @@ class LiveClassifier:
                 "ack_flags": int(float(live_flow.get("ack_flag_cnt", 0) or 0)),
             },
         }
+        return enrich_flow_record(flow_out)
 
 
 class LiveCaptureRunner:

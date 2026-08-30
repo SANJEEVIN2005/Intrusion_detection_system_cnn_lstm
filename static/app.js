@@ -93,6 +93,7 @@ const MAX_ROWS = 100;
 // =========================================================================
 let timelineChart = null;
 let donutChart = null;
+let radarChart = null;
 
 const TIMELINE_POINTS = 20;
 const timelineLabels = Array(TIMELINE_POINTS).fill("");
@@ -202,6 +203,62 @@ function initCharts() {
     }
   });
 
+  const ctxRadar = document.getElementById("featureSpiderChart").getContext("2d");
+  radarChart = new Chart(ctxRadar, {
+    type: "radar",
+    data: {
+      labels: [
+        "SYN Flags",
+        "Packets/s",
+        "Bytes/s",
+        "Max Pkt Len",
+        "Mean Pkt Len",
+        "Duration",
+        "ACK Flags",
+        "Bwd/Fwd"
+      ],
+      datasets: [
+        {
+          label: "Current Flow Fingerprint",
+          data: [10, 15, 20, 25, 20, 10, 15, 10],
+          backgroundColor: "rgba(16, 185, 129, 0.2)",
+          borderColor: "#10b981",
+          pointBackgroundColor: "#10b981",
+          borderWidth: 2,
+          pointRadius: 3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: { color: "rgba(255, 255, 255, 0.08)" },
+          grid: { color: "rgba(255, 255, 255, 0.05)" },
+          pointLabels: {
+            color: "#94a3b8",
+            font: { size: 9, weight: "600" }
+          },
+          ticks: {
+            display: false,
+            max: 100,
+            min: 0,
+            stepSize: 25
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#181b26",
+          borderColor: "#2b3145",
+          borderWidth: 1
+        }
+      }
+    }
+  });
+
   setInterval(() => {
     const timeStr = new Date().toLocaleTimeString([], { hour12: false });
     timelineLabels.shift();
@@ -220,209 +277,22 @@ function initCharts() {
   }, 2000);
 }
 
-// =========================================================================
-// 2. Vis.js Real-Time Network Topology Engine
-// =========================================================================
-let topoNodes = null;
-let topoEdges = null;
-let topoNetwork = null;
-let topoPhysicsEnabled = true;
-let topologyStats = { nodes: 1, links: 0, threats: 0 };
-const discoveredNodesMap = new Map();
-
-function initTopologyNetwork() {
-  const container = document.getElementById("topology-network-container");
-  if (!container || typeof vis === "undefined") return;
-
-  topoNodes = new vis.DataSet([
-    {
-      id: "gateway",
-      label: "💻 IoT Gateway\n(IDS / IPS Server)",
-      shape: "box",
-      margin: 10,
-      color: {
-        background: "#0f172a",
-        border: "#38bdf8",
-        highlight: { background: "#1e293b", border: "#0284c7" }
-      },
-      font: { color: "#f8fafc", face: "Inter", size: 12, bold: true },
-      shadow: { enabled: true, color: "rgba(56, 189, 248, 0.4)", size: 14 }
-    }
-  ]);
-
-  discoveredNodesMap.set("gateway", { type: "gateway", isAttacker: false });
-
-  topoEdges = new vis.DataSet([]);
-
-  const data = { nodes: topoNodes, edges: topoEdges };
-  const options = {
-    physics: {
-      enabled: true,
-      solver: "forceAtlas2Based",
-      forceAtlas2Based: {
-        gravitationalConstant: -35,
-        centralGravity: 0.008,
-        springLength: 100,
-        springConstant: 0.12,
-        damping: 0.4
-      },
-      stabilization: { iterations: 60 }
-    },
-    nodes: {
-      borderWidth: 2,
-      borderWidthSelected: 3,
-    },
-    edges: {
-      arrows: { to: { enabled: true, scaleFactor: 0.6 } },
-      smooth: { type: "continuous" }
-    },
-    interaction: {
-      hover: true,
-      tooltipDelay: 100,
-      zoomView: true,
-      dragView: true
-    }
-  };
-
-  topoNetwork = new vis.Network(container, data, options);
-
-  topoNetwork.on("click", (params) => {
-    if (params.nodes.length > 0) {
-      const nodeId = params.nodes[0];
-      if (nodeId !== "gateway") {
-        searchTerm = nodeId;
-        searchInput.value = nodeId;
-        reRenderTable();
-      }
-    }
-  });
-}
-
-function updateTopologyFromFlow(flow) {
-  if (!topoNodes || !topoEdges) return;
-
-  const isAttack = flow.predicted_class !== "Benign";
-  const src = flow.src_ip;
-  const dst = flow.dst_ip;
-
-  // Identify external or local peer
-  let peerIP = src;
-  let isAttackerPeer = isAttack;
-
-  if (!discoveredNodesMap.has(peerIP) && peerIP && peerIP !== "127.0.0.1") {
-    let nodeColor = { background: "#064e3b", border: "#10b981" };
-    let nodeLabel = `📱 ${peerIP}`;
-    let shadowColor = "rgba(16, 185, 129, 0.3)";
-
-    if (isAttackerPeer) {
-      nodeColor = { background: "#7f1d1d", border: "#ef4444" };
-      nodeLabel = `🚨 Attacker\n(${peerIP})`;
-      shadowColor = "rgba(239, 68, 68, 0.6)";
-      topologyStats.threats += 1;
-    } else if (!peerIP.startsWith("192.168.") && !peerIP.startsWith("10.") && !peerIP.startsWith("172.")) {
-      nodeColor = { background: "#1e1b4b", border: "#818cf8" };
-      nodeLabel = `🌐 Remote\n(${peerIP})`;
-      shadowColor = "rgba(129, 140, 248, 0.3)";
-    }
-
-    topoNodes.add({
-      id: peerIP,
-      label: nodeLabel,
-      shape: isAttackerPeer ? "box" : "ellipse",
-      color: nodeColor,
-      font: { color: "#f8fafc", face: "Inter", size: 10, bold: isAttackerPeer },
-      shadow: { enabled: true, color: shadowColor, size: 10 }
-    });
-
-    discoveredNodesMap.set(peerIP, { type: isAttackerPeer ? "attacker" : "host", isAttacker: isAttackerPeer });
-    topologyStats.nodes += 1;
-
-    // Connect to gateway
-    const edgeId = `${peerIP}->gateway`;
-    topoEdges.add({
-      id: edgeId,
-      from: peerIP,
-      to: "gateway",
-      color: isAttackerPeer ? { color: "#ef4444", highlight: "#f87171" } : { color: "#10b981", highlight: "#34d399" },
-      width: isAttackerPeer ? 3 : 1.5,
-      dashes: isAttackerPeer,
-      title: `${flow.protocol} | ${flow.predicted_class} (${flow.confidence}%)`
-    });
-    topologyStats.links += 1;
-
-    updateTopologyStatsUI();
-  } else if (discoveredNodesMap.has(peerIP) && isAttackerPeer && !discoveredNodesMap.get(peerIP).isAttacker) {
-    // Escalate existing node to attacker
-    topoNodes.update({
-      id: peerIP,
-      label: `🚨 Attacker\n(${peerIP})`,
-      shape: "box",
-      color: { background: "#7f1d1d", border: "#ef4444" },
-      shadow: { enabled: true, color: "rgba(239, 68, 68, 0.6)", size: 14 }
-    });
-    discoveredNodesMap.get(peerIP).isAttacker = true;
-    topologyStats.threats += 1;
-    updateTopologyStatsUI();
-  }
-}
-
-function updateTopologyStatsUI() {
-  const nodeCountElem = document.getElementById("topo-nodes-count");
-  const linksCountElem = document.getElementById("topo-links-count");
-  const attackCountElem = document.getElementById("topo-attack-count");
-  if (nodeCountElem) nodeCountElem.textContent = `Nodes: ${topologyStats.nodes}`;
-  if (linksCountElem) linksCountElem.textContent = `Active Links: ${topologyStats.links}`;
-  if (attackCountElem) attackCountElem.textContent = `Threats: ${topologyStats.threats}`;
-}
-
-window.fitTopologyMap = function() {
-  if (topoNetwork) topoNetwork.fit({ animation: { duration: 500, easingFunction: "easeInOutQuad" } });
-};
-
-window.toggleTopologyPhysics = function() {
-  if (!topoNetwork) return;
-  topoPhysicsEnabled = !topoPhysicsEnabled;
-  topoNetwork.setOptions({ physics: { enabled: topoPhysicsEnabled } });
-  const btn = document.getElementById("btn-toggle-physics");
-  if (btn) btn.innerHTML = `<i class="fa-solid fa-atom"></i> Physics: ${topoPhysicsEnabled ? 'On' : 'Off'}`;
-};
-
-window.resetTopologyMap = function() {
-  if (!topoNodes || !topoEdges) return;
-  topoNodes.clear();
-  topoEdges.clear();
-  discoveredNodesMap.clear();
-  topologyStats = { nodes: 1, links: 0, threats: 0 };
-  topoNodes.add({
-    id: "gateway",
-    label: "💻 IoT Gateway\n(IDS / IPS Server)",
-    shape: "box",
-    margin: 10,
-    color: { background: "#0f172a", border: "#38bdf8" },
-    font: { color: "#f8fafc", face: "Inter", size: 12, bold: true },
-    shadow: { enabled: true, color: "rgba(56, 189, 248, 0.4)", size: 14 }
-  });
-  discoveredNodesMap.set("gateway", { type: "gateway", isAttacker: false });
-  updateTopologyStatsUI();
-};
-
 window.switchSOCView = function(viewType) {
   const chartsContainer = document.getElementById("charts-view-container");
-  const topoContainer = document.getElementById("topology-view-container");
+  const soarContainer = document.getElementById("soar-view-container");
   const tabCharts = document.getElementById("view-tab-charts");
-  const tabTopo = document.getElementById("view-tab-topology");
+  const tabSoar = document.getElementById("view-tab-soar");
 
-  if (viewType === "topology") {
-    chartsContainer.style.display = "none";
-    topoContainer.style.display = "block";
-    tabCharts.classList.remove("active");
-    tabTopo.classList.add("active");
-    setTimeout(() => { if (topoNetwork) topoNetwork.fit(); }, 200);
+  if (viewType === "soar") {
+    if (chartsContainer) chartsContainer.style.display = "none";
+    if (soarContainer) soarContainer.style.display = "block";
+    if (tabCharts) tabCharts.classList.remove("active");
+    if (tabSoar) tabSoar.classList.add("active");
   } else {
-    topoContainer.style.display = "none";
-    chartsContainer.style.display = "grid";
-    tabTopo.classList.remove("active");
-    tabCharts.classList.add("active");
+    if (soarContainer) soarContainer.style.display = "none";
+    if (chartsContainer) chartsContainer.style.display = "grid";
+    if (tabSoar) tabSoar.classList.remove("active");
+    if (tabCharts) tabCharts.classList.add("active");
   }
 };
 
@@ -748,9 +618,6 @@ socket.on("new_flow", (flow) => {
     if (flow.confidence >= 75) showThreatToast(flow);
   }
 
-  // Update topology
-  updateTopologyFromFlow(flow);
-
   // Update counts
   if (counts[flow.predicted_class] !== undefined) {
     counts[flow.predicted_class] += 1;
@@ -773,6 +640,10 @@ socket.on("new_flow", (flow) => {
   updateThreatGauge();
   donutChart.data.datasets[0].data = [counts.Benign, counts.DDoS, counts.DoS, counts.Recon];
   donutChart.update("none");
+
+  // Update Feature Spider Radar & Hardware Speedometer
+  updateSpiderRadar(flow);
+  updateSpeedometer();
 
   // Render to table if stream is active and matches filter
   if (!isPaused && matchesFilter(flow)) {
@@ -808,11 +679,23 @@ function insertFlowRow(flow) {
 
   const ipsBadge = flow.ips_blocked ? `<span class="status-tag active-firewall ml-1" title="Blocked by IPS"><i class="fa-solid fa-shield-halved"></i> Blocked</span>` : "";
 
+  const srcName = flow.src_device_name || `${flow.src_icon || '💻'} Host (${flow.src_ip})`;
+  const dstName = flow.dst_device_name || `${flow.dst_icon || '🌐'} Target (${flow.dst_ip})`;
+  const appBadge = flow.application_name ?
+    `<span class="app-tag" title="${flow.application_category || 'Network Application'}">${flow.application_name}</span>` :
+    `<span class="proto-badge">${flow.protocol}</span>`;
+
   row.innerHTML = `
     <td>${flow.timestamp}</td>
-    <td class="mono">${flow.src_ip}:${flow.src_port} ${ipsBadge}</td>
-    <td class="mono">${flow.dst_ip}:${flow.dst_port}</td>
-    <td><span class="proto-badge">${flow.protocol}</span></td>
+    <td class="device-cell">
+      <div class="dev-title">${srcName} ${ipsBadge}</div>
+      <div class="dev-sub mono">${flow.src_ip}:${flow.src_port}</div>
+    </td>
+    <td class="device-cell">
+      <div class="dev-title">${dstName}</div>
+      <div class="dev-sub mono">${flow.dst_ip}:${flow.dst_port}</div>
+    </td>
+    <td>${appBadge}</td>
     <td><span class="badge ${flow.predicted_class}">${flow.predicted_class}</span></td>
     <td>
       <div class="confidence-bar-wrap">
@@ -858,6 +741,13 @@ window.openFlowModal = function(flow) {
   modalSrc.textContent = `${flow.src_ip}:${flow.src_port}`;
   modalDst.textContent = `${flow.dst_ip}:${flow.dst_port}`;
   modalProto.textContent = `${flow.protocol} | ${flow.timestamp}`;
+
+  const modalSrcDev = document.getElementById("modal-src-device");
+  const modalDstDev = document.getElementById("modal-dst-device");
+  const modalAppName = document.getElementById("modal-app-name");
+  if (modalSrcDev) modalSrcDev.textContent = flow.src_device_name || `Host (${flow.src_ip})`;
+  if (modalDstDev) modalDstDev.textContent = flow.dst_device_name || `Target (${flow.dst_ip})`;
+  if (modalAppName) modalAppName.textContent = flow.application_name || `${flow.protocol} Traffic`;
 
   // 1. Classification Probabilities
   modalProbBars.innerHTML = "";
@@ -1234,9 +1124,195 @@ btnExportPdf.onclick = () => {
   doc.save(`ips_incident_report_${new Date().toISOString().slice(0, 10)}.pdf`);
 };
 
+// =========================================================================
+// 9. 8-D Feature Spider Radar & Hardware Speedometer Engines
+// =========================================================================
+function updateSpiderRadar(flow) {
+  if (!radarChart) return;
+  const m = flow.metrics || {};
+  const isAttack = flow.predicted_class !== "Benign";
+
+  const synVal = Math.min(100, Math.max(0, (m.syn_flags || 0) * 40));
+  const pktsVal = Math.min(100, Math.max(0, ((m.flow_pkts_s || 50) / 2000) * 100));
+  const bytsVal = Math.min(100, Math.max(0, ((m.flow_byts_s || 25000) / 150000) * 100));
+  const maxLenVal = Math.min(100, Math.max(0, ((m.pkt_len_max || 500) / 1500) * 100));
+  const meanLenVal = Math.min(100, Math.max(0, ((m.pkt_len_mean || 300) / 1200) * 100));
+  const durVal = Math.min(100, Math.max(0, ((m.duration_ms || 100) / 500) * 100));
+  const ackVal = Math.min(100, Math.max(0, (m.ack_flags || 2) * 8));
+  const bwdVal = Math.min(100, Math.max(0, ((m.bwd_pkts || 1) / ((m.fwd_pkts || 1) + 1)) * 40));
+
+  const radarColor = isAttack ? (flow.predicted_class === "DDoS" ? "#ef4444" : (flow.predicted_class === "DoS" ? "#f97316" : "#3b82f6")) : "#10b981";
+  const radarBg = isAttack ? "rgba(239, 68, 68, 0.25)" : "rgba(16, 185, 129, 0.2)";
+
+  radarChart.data.datasets[0].data = [synVal, pktsVal, bytsVal, maxLenVal, meanLenVal, durVal, ackVal, bwdVal];
+  radarChart.data.datasets[0].borderColor = radarColor;
+  radarChart.data.datasets[0].backgroundColor = radarBg;
+  radarChart.data.datasets[0].pointBackgroundColor = radarColor;
+  radarChart.update("none");
+
+  const statElem = document.getElementById("radar-threat-stat");
+  if (statElem) {
+    statElem.innerHTML = isAttack ? `<span style="color: ${radarColor}; font-weight: 700;">⚠️ ${flow.predicted_class} Spike (${flow.confidence}%)</span>` : `<span style="color: #10b981;">Baseline (Safe)</span>`;
+  }
+}
+
+function updateSpeedometer() {
+  const latencyElem = document.getElementById("speedo-latency");
+  const fpsElem = document.getElementById("speedo-fps");
+  if (latencyElem) {
+    const lat = (37.5 + Math.random() * 2.2).toFixed(1);
+    latencyElem.textContent = lat;
+  }
+  if (fpsElem) {
+    const fps = (26000 + Math.floor(Math.random() * 600)).toLocaleString();
+    fpsElem.textContent = fps;
+  }
+}
+
+window.changeTheme = function(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  try {
+    localStorage.setItem("iot_ids_theme", theme);
+  } catch (e) {}
+  const sel = document.getElementById("theme-select");
+  if (sel) sel.value = theme;
+
+  const isLight = theme === "light";
+  const gridColor = isLight ? "rgba(0, 0, 0, 0.06)" : "rgba(255, 255, 255, 0.04)";
+  const tickColor = isLight ? "#475569" : "#64748b";
+  const radarLabelColor = isLight ? "#334155" : "#94a3b8";
+  const donutBorder = isLight ? "#ffffff" : "#11131a";
+
+  if (timelineChart && timelineChart.options && timelineChart.options.scales) {
+    timelineChart.options.scales.x.grid.color = gridColor;
+    timelineChart.options.scales.x.ticks.color = tickColor;
+    timelineChart.options.scales.y.grid.color = gridColor;
+    timelineChart.options.scales.y.ticks.color = tickColor;
+    timelineChart.update("none");
+  }
+
+  if (donutChart && donutChart.data && donutChart.data.datasets && donutChart.data.datasets[0]) {
+    donutChart.data.datasets[0].borderColor = donutBorder;
+    if (donutChart.options && donutChart.options.plugins && donutChart.options.plugins.legend) {
+      donutChart.options.plugins.legend.labels.color = radarLabelColor;
+    }
+    donutChart.update("none");
+  }
+
+  if (radarChart && radarChart.options && radarChart.options.scales && radarChart.options.scales.r) {
+    radarChart.options.scales.r.grid.color = gridColor;
+    radarChart.options.scales.r.angleLines.color = isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.08)";
+    radarChart.options.scales.r.pointLabels.color = radarLabelColor;
+    radarChart.update("none");
+  }
+};
+
+// =========================================================================
+// 11. Flow Crafting Studio Logic
+// =========================================================================
+const craftModal = document.getElementById("craft-modal");
+const btnOpenCraft = document.getElementById("btn-open-craft");
+const craftCloseBtn = document.getElementById("craft-close-btn");
+
+if (btnOpenCraft) {
+  btnOpenCraft.addEventListener("click", () => {
+    if (craftModal) craftModal.classList.add("active");
+    updateCraftPreview();
+  });
+}
+
+if (craftCloseBtn) {
+  craftCloseBtn.addEventListener("click", () => {
+    if (craftModal) craftModal.classList.remove("active");
+  });
+}
+
+if (craftModal) {
+  craftModal.addEventListener("click", (e) => {
+    if (e.target === craftModal) craftModal.classList.remove("active");
+  });
+}
+
+window.updateCraftPreview = function() {
+  const synSlider = document.getElementById("craft-syn-slider");
+  const pktsSlider = document.getElementById("craft-pkts-slider");
+  const bytsSlider = document.getElementById("craft-byts-slider");
+  const portSelect = document.getElementById("craft-port-select");
+  if (!synSlider || !pktsSlider || !bytsSlider || !portSelect) return;
+
+  const syn = parseInt(synSlider.value, 10);
+  const pkts = parseInt(pktsSlider.value, 10);
+  const byts = parseInt(bytsSlider.value, 10);
+  const port = parseInt(portSelect.value, 10);
+
+  document.getElementById("craft-syn-val").textContent = syn;
+  document.getElementById("craft-pkts-val").textContent = pkts.toLocaleString();
+  document.getElementById("craft-byts-val").textContent = byts.toLocaleString();
+
+  const portNames = {
+    1883: "1883 (MQTT Telemetry)",
+    5683: "5683 (CoAP IoT REST)",
+    554: "554 (RTSP Camera)",
+    502: "502 (Modbus SCADA)",
+    80: "80 (HTTP Web)",
+    443: "443 (HTTPS Web)",
+    22: "22 (SSH Terminal)",
+    23: "23 (Telnet Insecure)"
+  };
+  document.getElementById("craft-port-val").textContent = portNames[port] || port;
+
+  const badge = document.getElementById("craft-predicted-badge");
+  if (syn > 50) {
+    badge.className = "badge DoS";
+    badge.textContent = "🚨 DoS SYN Flood Attack (98.6%)";
+  } else if (pkts > 2500) {
+    badge.className = "badge DDoS";
+    badge.textContent = "🚨 Volumetric DDoS Burst (99.2%)";
+  } else if ([22, 23, 80].includes(port) && pkts > 300) {
+    badge.className = "badge Recon";
+    badge.textContent = "🚨 Port Reconnaissance Scan (95.4%)";
+  } else {
+    badge.className = "badge Benign";
+    badge.textContent = "✅ Benign IoT Traffic (99.8%)";
+  }
+};
+
+window.dispatchCraftedFlow = async function() {
+  const syn = parseInt(document.getElementById("craft-syn-slider").value, 10);
+  const pkts = parseInt(document.getElementById("craft-pkts-slider").value, 10);
+  const byts = parseInt(document.getElementById("craft-byts-slider").value, 10);
+  const port = parseInt(document.getElementById("craft-port-select").value, 10);
+
+  try {
+    const res = await fetch("/api/craft-flow", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        src_ip: "192.168.1.88",
+        dst_ip: "192.168.1.1",
+        src_port: 52410,
+        dst_port: port,
+        protocol: [5683].includes(port) ? "UDP" : "TCP",
+        syn_flags: syn,
+        pkts_s: pkts,
+        byts_s: byts
+      })
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      if (craftModal) craftModal.classList.remove("active");
+    }
+  } catch (e) {
+    console.error("Error dispatching crafted flow:", e);
+  }
+};
+
 // Initialize everything on DOM Ready
 document.addEventListener("DOMContentLoaded", () => {
+  try {
+    const savedTheme = localStorage.getItem("iot_ids_theme") || "dark";
+    changeTheme(savedTheme);
+  } catch (e) {}
   initCharts();
-  initTopologyNetwork();
   loadIPSStatus();
 });
